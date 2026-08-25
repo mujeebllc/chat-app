@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: chat-app
+
+spec:
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      name: backend-pod
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend-pod-cont
+          image: mujeebllc/backend:latest
+
+          ports:
+            - containerPort: 5001
+
+          env:
+            - name: NODE_ENV
+              value: "production"
+
+            - name: PORT
+              value: "5001"
+
+            - name: MONGODB_URI
+              value: "mongodb://mongoadmin:secret@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority"
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
