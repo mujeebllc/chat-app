@@ -1,340 +1,243 @@
-# Full-Stack Realtime Chat Application
+[![Fork Button](https://img.shields.io/github/forks/iemafzalhassan/full-stack_chatApp?style=social)](https://github.com/iemafzalhassan/full-stack_chatApp/fork)
 
-A full-stack realtime chat application built with **React, Node.js, Express, MongoDB, and Socket.IO**.
 
-The application provides user authentication, realtime messaging, online-user tracking, profile management, theme customization, and image uploads.
+# Real-Time Chat Application
 
-## Features
 
-* User registration and login
-* JWT-based authentication
-* Authentication using HTTP cookies
-* Realtime messaging with Socket.IO
-* Online user status
-* Private messaging
-* User profiles
-* Profile image uploads
-* Cloudinary integration for image storage
-* MongoDB persistence
-* Protected frontend routes
-* Responsive React interface
-* Theme customization
-* Toast notifications
-* Backend health-check endpoint
-* Production frontend serving through the Express backend
+Welcome to the **Full Stack Realtime Chat App** project, where we're building a scalable and secure real-time chat experience using the latest technologies. Whether you're a seasoned developer or a beginner, we invite you to contribute and be a part of this exciting journey!
 
-## Technology Stack
+## Table of Contents
 
-### Frontend
 
-* React 18
-* Vite
-* React Router
-* Zustand
-* Axios
-* Socket.IO Client
-* Tailwind CSS
-* DaisyUI
-* Lucide React
-* React Hot Toast
+* [Introduction](#introduction)
+* [Features](#features)
+* [Tech Stack](#tech-stack)
+* [Getting Started](#getting-started)
+* [Building the Backend](#building-the-backend)
+* [Running the Application](#running-the-application)
+* [Contributing](#contributing)
+* [Future Plans](#future-plans)
+* [License](#license)
 
-### Backend
+## 📝 Introduction
 
-* Node.js
-* Express.js
-* MongoDB
-* Mongoose
-* Socket.IO
-* JSON Web Tokens
-* bcryptjs
-* Cookie Parser
-* CORS
-* Cloudinary
-* dotenv
+This project aims to provide a real-time chat experience that's both scalable and secure. With a focus on modern technologies, we're building an application that's easy to use and maintain.
 
-The frontend dependencies and development tooling are defined in `frontend/package.json`.
+## ✨ Features
 
-The backend uses Express, Mongoose, Socket.IO, JWT, bcryptjs, Cloudinary, and related middleware.
 
-## Architecture
+* **Real-time Messaging**: Send and receive messages instantly using Socket.io 
+* **User Authentication & Authorization**: Securely manage user access with JWT 
+* **Scalable & Secure Architecture**: Built to handle large volumes of traffic and data 
+* **Modern UI Design**: A user-friendly interface crafted with React and TailwindCSS 
+* **Profile Management**: Users can upload and update their profile pictures 
+* **Online Status**: View real-time online/offline status of users 
 
-The application follows a client-server architecture:
 
-```text
-                    ┌─────────────────────┐
-                    │      Browser        │
-                    │   React Frontend    │
-                    └──────────┬──────────┘
-                               │
-                 HTTP / REST   │   WebSocket
-                               │
-                ┌──────────────▼──────────────┐
-                │       Node.js Backend       │
-                │       Express + Socket.IO   │
-                └──────────────┬──────────────┘
-                               │
-                 ┌─────────────┼─────────────┐
-                 │             │             │
-                 ▼             ▼             ▼
-           ┌──────────┐  ┌──────────┐  ┌───────────┐
-           │ MongoDB  │  │Cloudinary│  │  Socket.IO │
-           │ Database │  │  Images  │  │ Connections│
-           └──────────┘  └──────────┘  └───────────┘
-```
+## 🛠️ Tech Stack
 
-The backend exposes authentication, messaging, and health-check routes.
 
-## Realtime Communication
+* **Backend:** Node.js, Express, MongoDB, Socket.io
+* **Frontend:** React, TailwindCSS
+* **Containerization:** Docker
+* **Orchestration:** Kubernetes (planned)
+* **Web Server:** Nginx
+* **State Management:** Zustand
+* **Authentication:** JWT
+* **Styling Components:** DaisyUI
 
-Socket.IO is used for realtime communication between clients and the backend.
 
-When a user connects, the server associates the user's ID with their Socket.IO connection. The server maintains an in-memory mapping of:
+### 🔧 Prerequisites
 
-```text
-userId → socketId
-```
 
-It also broadcasts the list of currently connected users to clients whenever users connect or disconnect.
+* **[Node.js](https://nodejs.org/)** (v14 or higher)
+* **[Docker](https://www.docker.com/get-started)** (for containerizing the app)
+* **[Git](https://git-scm.com/downloads)** (to clone the repository)
 
-This allows the frontend to display online users and receive realtime events without repeatedly polling the backend.
 
-## Database
+### 📝 Environment Configuration
 
-MongoDB is used as the application's primary database.
-
-Mongoose handles the connection between the Node.js application and MongoDB. The application requires the `MONGODB_URI` environment variable and uses connection pooling and timeout configuration for database connectivity.
-
-## Authentication
-
-Authentication is handled by the backend using:
-
-* bcryptjs for password hashing
-* JSON Web Tokens for authentication
-* HTTP cookies for storing authentication information
-* Protected API routes
-
-The frontend checks the current authentication state before allowing access to protected pages.
-
-For example, unauthenticated users are redirected to `/login`, while authenticated users can access the chat application and profile pages.
-
-## Application Routes
-
-### Frontend Routes
-
-| Route       | Purpose              |
-| ----------- | -------------------- |
-| `/`         | Chat home page       |
-| `/signup`   | User registration    |
-| `/login`    | User login           |
-| `/settings` | Application settings |
-| `/profile`  | User profile         |
-
-Authentication state determines whether users can access protected routes.
-
-### Backend Routes
-
-| Endpoint        | Purpose                                |
-| --------------- | -------------------------------------- |
-| `/api/auth`     | Authentication operations              |
-| `/api/messages` | Messaging operations                   |
-| `/health`       | Application and database health status |
-
-The `/health` endpoint returns the application status, timestamp, database connection status, and current environment.
-
-## Project Structure
-
-```text
-full-stack_chatApp/
-│
-├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── lib/
-│   │   │   ├── db.js
-│   │   │   └── socket.js
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   │   ├── auth.route.js
-│   │   │   ├── message.route.js
-│   │   │   └── health.route.js
-│   │   └── index.js
-│   │
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── store/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   │
-│   └── package.json
-│
-├── package.json
-└── README.md
-```
-
-## Environment Variables
-
-Create a `.env` file for the backend configuration.
-
-Example:
+Create a `.env` file in the root directory with the following configuration:
 
 ```env
-PORT=5000
+# Database Configuration
+MONGODB_URI=mongodb://root:admin@mongo:27017/chatApp?authSource=admin&retryWrites=true&w=majority
 
-MONGODB_URI=mongodb://localhost:27017/chatApp
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key
 
-JWT_SECRET=your_jwt_secret
-
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-
-NODE_ENV=development
+# Server Configuration
+PORT=5001
+NODE_ENV=production
 ```
 
-Do not commit real credentials, API keys, database passwords, JWT secrets, or Cloudinary credentials to GitHub.
+> **Note:** 
+> - Replace `your_jwt_secret_key` with a strong secret key
+> - For local development without Docker, change `MONGODB_URI` to `mongodb://localhost:27017/chatApp`
+> - You can use command ```echo "Text what you want" | base64
 
-## Installation
-
-Clone the repository:
+### Clone the Repository
 
 ```bash
-git clone https://github.com/mujeebllc/full-stack_chatApp.git
+git clone https://github.com/iemafzalhassan/full-stack_chatApp.git
+```
+
+🏗️ Build and Run the Application
+
+Follow these steps to build and run the application:
+
+1. Build & Run the Containers:
+
+```bash
 cd full-stack_chatApp
 ```
-
-Install dependencies and build the frontend:
-
 ```bash
-npm run build
+docker-compose up -d --build
 ```
 
-The root `build` script installs dependencies in both the backend and frontend and then builds the frontend application.
+2. Access the application in your browser:
 
-## Development
+```
+http://localhost
+```
+---
 
-Start the backend in development mode:
+## 🛠️ Getting Started
+
+Follow these simple steps to get the project up and running on your local Host using docker.
 
 ```bash
-cd backend
-npm run dev
+git clone https://github.com/iemafzalhassan/full-stack_chatApp.git
 ```
 
-Start the frontend development server:
+```bash
+cd full-stack_chatApp
+```
+## Create a Docker network:
+
+```bash
+docker network create full-stack
+```
+
+## 🛠️ Building the Frontend
 
 ```bash
 cd frontend
-npm run dev
 ```
-
-The Vite development server is configured through the frontend project, while the backend runs through Node.js/Express.
-
-## Production
-
-Build the application:
 
 ```bash
-npm run build
+docker build -t full-stack_frontend .
 ```
 
-Then start the backend:
+### Run the Frontend container:
 
 ```bash
-npm start
+docker run -d --network=full-stack  -p 5173:5173 --name frontend full-stack_frontend:latest
+```
+#### The frontend will now be accessible on port 5173.
+
+
+## Run the MongoDB Container:
+
+```bash
+docker run -d -p 27017:27017 --name mongo mongo:latest
+```
+---
+
+## 🛠️ Building the Backend
+
+```bash
+cd backend
 ```
 
-In production mode, the Express backend serves the compiled React frontend from the frontend build directory.
+### Build the Backend image:
 
-## Health Check
-
-The backend provides a health endpoint:
-
-```text
-GET /health
+```bash
+docker build -t full-stack_backend .
 ```
 
-A healthy response includes information similar to:
+### Run the Backend container:
 
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-01-01T00:00:00.000Z",
-  "database": "connected",
-  "environment": "production"
-}
+```bash
+docker run -d --network=full-stack --add-host=host.docker.internal:host-gateway -p 5001:5001 --env-file .env full-stack_backend
+```
+#### This will build and run the backend container, exposing the backendAPI on port 5001.
+
+`Backend API: http://localhost:5001`
+
+### To Verify the conncetion between backend and databse:
+```bash
+docker-compose logs -f
 ```
 
-The endpoint can be useful for monitoring and deployment environments.
+### Once the backend and frontend containers are running, you can access the application in your browser:
 
-## Realtime Message Flow
+`Frontend: http://localhost`
 
-A typical chat interaction works approximately like this:
 
-```text
-User A
-  │
-  │ sends message
-  ▼
-React Frontend
-  │
-  │ HTTP request
-  ▼
-Express Backend
-  │
-  ├──────────────► MongoDB
-  │                 stores message
-  │
-  └──────────────► Socket.IO
-                    │
-                    │ realtime event
-                    ▼
-                 User B
-```
+You can now interact with the real-time chat app and start messaging!
 
-Socket.IO maintains active connections and tracks online users, while MongoDB provides persistent storage for application data.
+---
 
-## Deployment
 
-The application can be deployed using several approaches, including:
 
-* Traditional Node.js hosting
-* Virtual machines
-* Containerized deployments
-* Kubernetes
-* Cloud hosting platforms
+### 🤝 Contributing
 
-For a Kubernetes deployment, the application can be separated into frontend/backend workloads and exposed through Kubernetes Services and an Ingress controller.
 
-## Security Considerations
+We welcome contributions from DevOps & Developer of all skill levels! Here's how you can contribute:
 
-Before deploying publicly:
+**Report bugs:** If you encounter any bugs or issues, please open an issue with detailed information.
+**Suggest features:** Have an idea for a new feature? Open an issue to discuss it with the community.
+**Submit pull requests:** If you have a fix or a feature you'd like to contribute, submit a pull request. Ensure your changes pass any linting or tests, if applicable.
 
-* Use strong JWT secrets.
-* Never commit `.env` files.
-* Use HTTPS in production.
-* Restrict CORS to trusted origins.
-* Use secure and appropriately configured cookies.
-* Protect MongoDB from public internet access.
-* Rotate exposed credentials immediately.
-* Configure Cloudinary credentials through environment variables.
-* Use appropriate resource limits when deploying to Kubernetes.
+### 🌐 Join the Community
 
-## Credits
+We invite you to join our community of developers and contributors. Let's work together to build an amazing real-time chat application!
 
-This project is based on the original **Full Stack Realtime Chat App** project by `iemafzalhassan`.
+* **Star this repository** to show your support
+* **Fork this repository** to contribute to the project
+* **Open an issue** to report bugs or suggest features
+* **Submit a pull request** to contribute code changes
 
-The current repository is maintained as a fork under the `mujeebllc` GitHub account.
+## 🔮 Future Plans
 
-## License
 
-The original upstream repository uses the MIT License. Check the upstream repository and included license information before redistributing modified versions.
+This project is evolving, and here are a few exciting things on the horizon:
 
-## Author
+* [ ] **CI/CD Pipelines:** Implement Continuous Integration and Continuous Deployment pipelines to automate testing and deployment.
+* [ ] **Kubernetes (K8s):** Add Kubernetes manifests for container orchestration to deploy the app on cloud platforms like AWS, GCP, or Azure.
+* [ ] **Feature Expansion:** Add more features like group chats, media sharing, and user status updates.
+* **Stay tuned for updates as we continue to improve and expand this project!**
 
-**Mujeeb Ullah**
+---
 
-GitHub: `https://github.com/mujeebllc`
+## 📚 Project Snapshots:
+
+![Settings](frontend/public/settings.png)
+
+![chat](frontend/public/chat.png)
+
+![logout](/frontend/public/logout.png)
+
+![Login](/frontend/public/login.png)
+
+
+
+## 📜 License
+
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
