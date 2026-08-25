@@ -76,31 +76,7 @@ NODE_ENV=production
 > - For local development without Docker, change `MONGODB_URI` to `mongodb://localhost:27017/chatApp`
 > - You can use command ```echo "Text what you want" | base64
 
-### Clone the Repository
 
-```bash
-git clone https://github.com/iemafzalhassan/full-stack_chatApp.git
-```
-
-🏗️ Build and Run the Application
-
-Follow these steps to build and run the application:
-
-1. Build & Run the Containers:
-
-```bash
-cd full-stack_chatApp
-```
-```bash
-docker-compose up -d --build
-```
-
-2. Access the application in your browser:
-
-```
-http://localhost
-```
----
 
 ## 🛠️ Getting Started
 
@@ -113,71 +89,115 @@ git clone https://github.com/iemafzalhassan/full-stack_chatApp.git
 ```bash
 cd full-stack_chatApp
 ```
-## Create a Docker network:
+# 🐳 Docker Deployment
+
+The application is containerized using separate Docker images for the frontend and backend.
+
+## Frontend Docker Image
+
+The frontend uses a multi-stage Docker build.
+
+The first stage builds the React application using Node.js, and the second stage uses NGINX to serve the generated production files.
+
+### Build the Frontend Image
+
+From the project root:
 
 ```bash
-docker network create full-stack
-```
+docker build -t mujeebllc/frontend:latest ./frontend
 
-## 🛠️ Building the Frontend
+k8s/
+├── namespace.yml
+├── secret.yml
+│
+├── frontend-deployment.yml
+├── frontend-service.yml
+│
+├── backend-deployment.yml
+├── backend-service.yml
+│
+├── mongodb-deployment.yml
+├── mongodb-service.yml
+├── mongo-pvc.yml
+│
+└── chat-ingress.yml
+###K8s Architecture:
 
-```bash
-cd frontend
-```
-
-```bash
-docker build -t full-stack_frontend .
-```
-
-### Run the Frontend container:
-
-```bash
-docker run -d --network=full-stack  -p 5173:5173 --name frontend full-stack_frontend:latest
-```
-#### The frontend will now be accessible on port 5173.
-
-
-## Run the MongoDB Container:
-
-```bash
-docker run -d -p 27017:27017 --name mongo mongo:latest
-```
----
-
-## 🛠️ Building the Backend
-
-```bash
-cd backend
-```
-
-### Build the Backend image:
-
-```bash
-docker build -t full-stack_backend .
-```
-
-### Run the Backend container:
-
-```bash
-docker run -d --network=full-stack --add-host=host.docker.internal:host-gateway -p 5001:5001 --env-file .env full-stack_backend
-```
-#### This will build and run the backend container, exposing the backendAPI on port 5001.
-
-`Backend API: http://localhost:5001`
-
-### To Verify the conncetion between backend and databse:
-```bash
-docker-compose logs -f
-```
-
-### Once the backend and frontend containers are running, you can access the application in your browser:
-
-`Frontend: http://localhost`
+                           Client Browser
+                                │
+                                │ HTTP
+                                ▼
+                     ┌────────────────────┐
+                     │   NGINX Ingress    │
+                     │    Controller      │
+                     └─────────┬──────────┘
+                               │
+                    ┌──────────┴──────────┐
+                    │                     │
+                 /api                    /
+                    │                     │
+                    ▼                     ▼
+          ┌──────────────────┐   ┌──────────────────┐
+          │ Backend Service  │   │ Frontend Service │
+          │      :5001       │   │       :80        │
+          └────────┬─────────┘   └────────┬─────────┘
+                   │                      │
+                   ▼                      ▼
+          ┌──────────────────┐   ┌──────────────────┐
+          │   Backend Pod    │   │   Frontend Pod   │
+          │ Node + Express   │   │ React + NGINX    │
+          │      :5001       │   │       :80        │
+          └────────┬─────────┘   └──────────────────┘
+                   │
+                   │ MongoDB connection
+                   ▼
+          ┌──────────────────┐
+          │ MongoDB Service  │
+          │      :27017      │
+          └────────┬─────────┘
+                   │
+                   ▼
+          ┌──────────────────┐
+          │   MongoDB Pod    │
+          │      :27017      │
+          └────────┬─────────┘
+                   │
+                   │ /data/db
+                   ▼
+          ┌──────────────────┐
+          │   MongoDB PVC    │
+          │       2Gi        │
+          │    local-path    │
+          └──────────────────┘
 
 
-You can now interact with the real-time chat app and start messaging!
 
----
+###Request Flow:
+Browser
+   │
+   ▼
+NGINX Ingress Controller
+   │
+   ├── / ──────────► Frontend Service
+   │                       │
+   │                       ▼
+   │                  Frontend Pod
+   │                  React + NGINX
+   │
+   └── /api ────────► Backend Service
+                           │
+                           ▼
+                      Backend Pod
+                      Node + Express
+                           │
+                           ▼
+                     MongoDB Service
+                           │
+                           ▼
+                      MongoDB Pod
+                           │
+                           ▼
+                       MongoDB PVC
 
 
 
