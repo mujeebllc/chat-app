@@ -19,11 +19,10 @@ spec:
           image: mujeebllc/backend:v1
           ports:
             - containerPort: 5001
+          envFrom:
+            - configMapRef:
+                name: chat-app-config
           env:
-            - name: NODE_ENV
-              value: "production"
-            - name: PORT
-              value: "5001"
             - name: MONGO_USER
               valueFrom:
                 secretKeyRef:
@@ -36,8 +35,6 @@ spec:
                   key: MONGO_ROOT_PASSWORD
             - name: MONGODB_URI
               value: "mongodb://$(MONGO_USER):$(MONGO_PASS)@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority"
-            - name: REDIS_URI
-              value: "redis://redis:6379"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
