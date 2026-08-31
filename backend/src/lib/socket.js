@@ -1,6 +1,8 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import { createClient } from "redis";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 const app = express();
 const server = http.createServer(app);
@@ -11,26 +13,42 @@ const io = new Server(server, {
   },
 });
 
-export function getReceiverSocketId(userId) {
-  return userSocketMap[userId];
-}
+const redisUrl = process.env.REDIS_URI || "redis://localhost:6379";
+export const pubClient = createClient({ url: redisUrl });
+export const subClient = pubClient.duplicate();
+export const stateClient = pubClient.duplicate();
 
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
+Promise.all([pubClient.connect(), subClient.connect(), stateClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log("Connected to Redis and initialized Socket.IO adapter");
+}).catch(err => {
+  console.error("Redis connection error:", err);
+});
 
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id;
+  if (userId) {
+    socket.join(userId); // Join room named after userId for direct messaging
+    
+    stateClient.hIncrBy("onlineUsers", userId, 1).then(() => {
+      stateClient.hKeys("onlineUsers").then(users => {
+        io.emit("getOnlineUsers", users);
+      });
+    });
+  }
 
-  // io.emit() is used to send events to all the connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     console.log("A user disconnected", socket.id);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    if (userId) {
+      const count = await stateClient.hIncrBy("onlineUsers", userId, -1);
+      if (count <= 0) {
+        await stateClient.hDel("onlineUsers", userId);
+      }
+      const users = await stateClient.hKeys("onlineUsers");
+      io.emit("getOnlineUsers", users);
+    }
   });
 });
 

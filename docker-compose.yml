@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  backend-1:
+    build: ./backend
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongoadmin:secret@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret_key
+    depends_on:
+      - mongodb
+      - redis
+
+  backend-2:
+    build: ./backend
+    ports:
+      - "5002:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongoadmin:secret@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret_key
+    depends_on:
+      - mongodb
+      - redis
+
+  # Optional: Nginx to load balance between backend-1 and backend-2 locally
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "5000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend-1
+      - backend-2

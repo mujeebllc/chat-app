@@ -1,27 +1,44 @@
 import express from "express";
 import mongoose from "mongoose";
+import { pubClient } from "../lib/socket.js";
 
 const router = express.Router();
 
-// Health check endpoint
-router.get("/", async (req, res) => {
+// Liveness probe
+router.get("/liveness", (req, res) => {
+  res.status(200).json({ status: "alive", timestamp: new Date().toISOString() });
+});
+
+// Readiness probe
+router.get("/readiness", (req, res) => {
   try {
-    // Check database connection
-    const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+    const dbStatus = mongoose.connection.readyState === 1;
+    const redisStatus = pubClient.isOpen;
     
-    res.status(200).json({
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      database: dbStatus,
-      environment: process.env.NODE_ENV || "development"
-    });
+    if (dbStatus && redisStatus) {
+      res.status(200).json({
+        status: "ready",
+        database: "connected",
+        redis: "connected"
+      });
+    } else {
+      res.status(503).json({
+        status: "not ready",
+        database: dbStatus ? "connected" : "disconnected",
+        redis: redisStatus ? "connected" : "disconnected"
+      });
+    }
   } catch (error) {
     res.status(503).json({
-      status: "unhealthy",
-      timestamp: new Date().toISOString(),
+      status: "error",
       error: error.message
     });
   }
+});
+
+// Keep original / health endpoint routing to readiness
+router.get("/", (req, res) => {
+  res.redirect("/api/health/readiness");
 });
 
 export default router; 
