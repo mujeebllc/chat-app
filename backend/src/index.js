@@ -10,7 +10,7 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import healthRoutes from "./routes/health.route.js";
-import { app, server } from "./lib/socket.js";
+import { app, server, connectRedis } from "./lib/socket.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -41,7 +41,18 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-server.listen(PORT, () => {
-  console.log("server is running on PORT:" + PORT);
-  connectDB();
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    await connectRedis();
+    
+    server.listen(PORT, () => {
+      console.log("server is running on PORT:" + PORT);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

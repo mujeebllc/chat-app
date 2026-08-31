@@ -18,12 +18,16 @@ export const pubClient = createClient({ url: redisUrl });
 export const subClient = pubClient.duplicate();
 export const stateClient = pubClient.duplicate();
 
-Promise.all([pubClient.connect(), subClient.connect(), stateClient.connect()]).then(() => {
-  io.adapter(createAdapter(pubClient, subClient));
-  console.log("Connected to Redis and initialized Socket.IO adapter");
-}).catch(err => {
-  console.error("Redis connection error:", err);
-});
+export const connectRedis = async () => {
+  try {
+    await Promise.all([pubClient.connect(), subClient.connect(), stateClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("Connected to Redis and initialized Socket.IO adapter");
+  } catch (err) {
+    console.error("Redis connection error:", err);
+    process.exit(1);
+  }
+};
 
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
