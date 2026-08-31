@@ -40,7 +40,12 @@ spec:
             secretKeyRef:
               name: jwt-secret
               key: MONGO_ROOT_PASSWORD
-      volumes:
-      - name: mongo-persistent-storage
-        persistentVolumeClaim:
-          claimName: mongo-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 2Gi

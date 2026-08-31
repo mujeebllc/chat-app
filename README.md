@@ -106,6 +106,22 @@ From the project root:
 ```bash
 docker build -t mujeebllc/frontend:latest ./frontend
 
+### ☸️ Kubernetes Deployment
+
+To deploy the application to a Kubernetes cluster, you can apply the manifests in the `k8s/` directory.
+
+```bash
+# Apply the namespace and secrets first
+kubectl apply -f k8s/namespace.yml
+kubectl apply -f k8s/secret.yml
+
+# Apply the StatefulSets and Deployments
+kubectl apply -f k8s/
+
+# Check the status of your pods
+kubectl get pods -n chat-app
+```
+
 k8s/
 ├── namespace.yml
 ├── secret.yml
