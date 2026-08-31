@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend-pod-cont
-          image: mujeebllc/backend:latest
+          image: mujeebllc/backend:v1
           ports:
             - containerPort: 5001
           env:

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend-pod-cont
-        image: mujeebllc/frontend:latest
+        image: mujeebllc/frontend:v1
         ports:
         - containerPort: 80
         resources:
