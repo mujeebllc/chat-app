@@ -38,7 +38,7 @@ router.get("/readiness", (req, res) => {
 
 // Keep original / health endpoint routing to readiness
 router.get("/", (req, res) => {
-  res.redirect("/api/health/readiness");
+  res.redirect("/health/readiness");
 });
 
 export default router; 

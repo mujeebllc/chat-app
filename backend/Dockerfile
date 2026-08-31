@@ -36,6 +36,6 @@ USER appuser
 # Start the server
 CMD ["npm", "start"]
 
-# Health check
+# Health check using wget (included in alpine)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5001/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5001/health/liveness || exit 1
