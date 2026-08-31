@@ -37,7 +37,7 @@ This project aims to provide a real-time chat experience that's both scalable an
 ## 🛠️ Tech Stack
 
 
-* **Backend:** Node.js, Express, MongoDB, Socket.io
+* **Backend:** Node.js, Express, MongoDB, Redis, Socket.io
 * **Frontend:** React, TailwindCSS
 * **Containerization:** Docker
 * **Orchestration:** Kubernetes (planned)
@@ -116,9 +116,12 @@ k8s/
 ├── backend-deployment.yml
 ├── backend-service.yml
 │
-├── mongodb-deployment.yml
+├── mongodb-statefulset.yml
 ├── mongodb-service.yml
 ├── mongo-pvc.yml
+│
+├── redis-deployment.yml
+├── redis-service.yml
 │
 └── chat-ingress.yml
 ###K8s Architecture:
@@ -144,31 +147,31 @@ k8s/
                    │                      │
                    ▼                      ▼
           ┌──────────────────┐   ┌──────────────────┐
-          │   Backend Pod    │   │   Frontend Pod   │
+          │ Backend Pods (2) │   │   Frontend Pod   │
           │ Node + Express   │   │ React + NGINX    │
           │      :5001       │   │       :80        │
           └────────┬─────────┘   └──────────────────┘
                    │
-                   │ MongoDB connection
-                   ▼
-          ┌──────────────────┐
-          │ MongoDB Service  │
-          │      :27017      │
-          └────────┬─────────┘
-                   │
-                   ▼
-          ┌──────────────────┐
-          │   MongoDB Pod    │
-          │      :27017      │
-          └────────┬─────────┘
-                   │
-                   │ /data/db
-                   ▼
-          ┌──────────────────┐
-          │   MongoDB PVC    │
-          │       2Gi        │
-          │    local-path    │
-          └──────────────────┘
+         ┌─────────┴─────────┐
+         │                   │
+         ▼                   ▼
+┌──────────────────┐   ┌──────────────────┐
+│  Redis Service   │   │ MongoDB Service  │
+│      :6379       │   │      :27017      │
+└────────┬─────────┘   └────────┬─────────┘
+         │                      │
+         ▼                      ▼
+┌──────────────────┐   ┌──────────────────┐
+│   Redis Pod      │   │   MongoDB Pod    │
+│      :6379       │   │      :27017      │
+└──────────────────┘   └────────┬─────────┘
+                                │
+                                ▼
+                       ┌──────────────────┐
+                       │   MongoDB PVC    │
+                       │       2Gi        │
+                       │     longhorn     │
+                       └──────────────────┘
 
 
 
@@ -187,17 +190,19 @@ NGINX Ingress Controller
    └── /api ────────► Backend Service
                            │
                            ▼
-                      Backend Pod
+                      Backend Pods
                       Node + Express
                            │
-                           ▼
-                     MongoDB Service
-                           │
-                           ▼
-                      MongoDB Pod
-                           │
-                           ▼
-                       MongoDB PVC
+                 ┌─────────┴─────────┐
+                 │                   │
+                 ▼                   ▼
+            Redis Service      MongoDB Service
+                 │                   │
+                 ▼                   ▼
+             Redis Pod          MongoDB Pod
+                 │                   │
+                 ▼                   ▼
+             In-memory          MongoDB PVC
 
 
 
@@ -225,7 +230,7 @@ We invite you to join our community of developers and contributors. Let's work t
 This project is evolving, and here are a few exciting things on the horizon:
 
 * [ ] **CI/CD Pipelines:** Implement Continuous Integration and Continuous Deployment pipelines to automate testing and deployment.
-* [ ] **Kubernetes (K8s):** Add Kubernetes manifests for container orchestration to deploy the app on cloud platforms like AWS, GCP, or Azure.
+* [x] **Kubernetes (K8s):** Add Kubernetes manifests for container orchestration to deploy the app on cloud platforms like AWS, GCP, or Azure.
 * [ ] **Feature Expansion:** Add more features like group chats, media sharing, and user status updates.
 * **Stay tuned for updates as we continue to improve and expand this project!**
 
