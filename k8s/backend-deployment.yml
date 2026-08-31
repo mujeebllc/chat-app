@@ -3,41 +3,58 @@ kind: Deployment
 metadata:
   name: backend-deployment
   namespace: chat-app
-
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: backend
-
   template:
     metadata:
       name: backend-pod
       labels:
         app: backend
-
     spec:
       containers:
         - name: backend-pod-cont
           image: mujeebllc/backend:latest
-
           ports:
             - containerPort: 5001
-
           env:
             - name: NODE_ENV
               value: "production"
-
             - name: PORT
               value: "5001"
-
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: MONGO_ROOT_PASSWORD
             - name: MONGODB_URI
-              value: "mongodb://mongoadmin:secret@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority"
-
+              value: "mongodb://$(MONGO_USER):$(MONGO_PASS)@mongodb:27017/chatApp?authSource=admin&retryWrites=true&w=majority"
+            - name: REDIS_URI
+              value: "redis://redis:6379"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: jwt-secret
                   key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 10
           resources:
             requests:
               memory: "128Mi"
